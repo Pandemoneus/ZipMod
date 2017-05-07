@@ -7,38 +7,16 @@ import shutil
 import fnmatch
 import functools
 import itertools
-import subprocess
 
 # define additional patterns for files here that are not in the .gitignore file and should be omitted from the zipped mod
 additionalIgnorePatterns = ['*.py', '.git', '.gitignore']
 
-def readAllGitIgnorePatterns(dir):
-  patterns = readGitIgnorePatterns(os.path.join(dir,'.gitignore'))
-
-  try:
-    gitExcludesFile = os.path.expanduser(
-      subprocess.check_output([
-        'git',
-        '--git-dir',
-        os.path.join(dir, '.git'),
-        'config',
-        'core.excludesfile'
-      ]).rstrip().decode("utf-8")
-    )
-    patterns |= readGitIgnorePatterns(gitExcludesFile)
-  except subprocess.CalledProcessError:
-    pass
-
-  return patterns
-
-
-
 # reads non-commented ignore patterns from the .gitignore file
-def readGitIgnorePatterns(gitIgnoreFilename):
+def readGitIgnorePatterns():
   patterns = set()
 
-  if os.path.isfile(gitIgnoreFilename):
-    with open(gitIgnoreFilename) as gitIgnoreFile:
+  if os.path.isfile('.gitignore'):
+    with open('.gitignore') as gitIgnoreFile:
       for line in gitIgnoreFile:
         if not line.startswith('#'):
           if line.endswith('\n'):
@@ -62,7 +40,7 @@ def find_files(dir_path: str=None, patterns: [str]=None) -> [str]:
 
 # function to be passed to copytree, see https://docs.python.org/2/library/shutil.html#shutil.copytree
 def ignoreFunction(directory, files):
-  ignorePatterns = readAllGitIgnorePatterns(modDir)
+  ignorePatterns = readGitIgnorePatterns()
   ignorePatterns = list(ignorePatterns)
 
   for additionalPattern in additionalIgnorePatterns:
@@ -74,11 +52,11 @@ def ignoreFunction(directory, files):
 
 ## script start
 if len(sys.argv) == 2:
-  modDir = sys.argv[1]
+  dir = sys.argv[1]
 else:
-  modDir = '.'
+  dir = '.'
 
-with open(os.path.join(modDir, 'info.json')) as infoFile:
+with open(os.path.join(dir, 'info.json')) as infoFile:
   modInfo = json.load(infoFile)
 
 if modInfo is not None:
@@ -87,9 +65,9 @@ if modInfo is not None:
 
   modFileName = modName + '_' + modVersion
   tempDir = os.path.join ('.', 'tmp')
-  tempModDir = os.path.join(tempDir, modFileName)
+  modDir = os.path.join(tempDir, modFileName)
 
-  shutil.copytree(modDir, tempModDir, ignore=ignoreFunction)
+  shutil.copytree(dir, modDir, ignore=ignoreFunction)
 
   if os.path.isfile(modFileName + '.zip'):
     os.remove(modFileName + '.zip')
