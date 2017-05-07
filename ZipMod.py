@@ -13,7 +13,7 @@ import subprocess
 additionalIgnorePatterns = ['*.py', '.git', '.gitignore']
 
 def readAllGitIgnorePatterns(dir):
-  patterns = readGitIgnorePatterns(os.path.join(dir,'.gitignore'))
+  patterns = readGitIgnorePatterns(os.path.join(dir, '.gitignore'))
 
   try:
     gitExcludesFile = os.path.expanduser(
@@ -77,22 +77,30 @@ if len(sys.argv) == 2:
   modDir = sys.argv[1]
 else:
   modDir = '.'
+  
+if os.path.isdir(modDir):
+  modInfoJson = os.path.join(modDir, 'info.json')
+  
+  if os.path.isfile(modInfoJson):
+    with open(modInfoJson) as infoFile:
+      modInfo = json.load(infoFile)
 
-with open(os.path.join(modDir, 'info.json')) as infoFile:
-  modInfo = json.load(infoFile)
+    if modInfo is not None:
+      modName = modInfo['name']
+      modVersion = modInfo['version']
 
-if modInfo is not None:
-  modName = modInfo['name']
-  modVersion = modInfo['version']
+      modFileName = modName + '_' + modVersion
+      tempDir = os.path.join ('.', 'tmp')
+      tempModDir = os.path.join(tempDir, modFileName)
 
-  modFileName = modName + '_' + modVersion
-  tempDir = os.path.join ('.', 'tmp')
-  tempModDir = os.path.join(tempDir, modFileName)
+      shutil.copytree(modDir, tempModDir, ignore=ignoreFunction)
 
-  shutil.copytree(modDir, tempModDir, ignore=ignoreFunction)
+      if os.path.isfile(modFileName + '.zip'):
+        os.remove(modFileName + '.zip')
 
-  if os.path.isfile(modFileName + '.zip'):
-    os.remove(modFileName + '.zip')
-
-  shutil.make_archive(modFileName, 'zip', tempDir)
-  shutil.rmtree(tempDir)
+      shutil.make_archive(modFileName, 'zip', tempDir)
+      shutil.rmtree(tempDir)
+  else:
+    print('"%s" does not contain a "info.json" file.' %modDir) 
+else:
+  print('"%s" is not a valid directory.' % modDir)
