@@ -11,7 +11,7 @@ additionalIgnorePatterns = ['*.py', '.git', '.gitignore']
 # reads non-commented ignore patterns from the .gitignore file
 def readGitIgnorePatterns():
   patterns = set()
-   
+
   if os.path.isfile('.gitignore'):
     with open('.gitignore') as gitIgnoreFile:
       for line in gitIgnoreFile:
@@ -20,7 +20,7 @@ def readGitIgnorePatterns():
             patterns.add(line[:-1])
           else:
             patterns.add(line)
-          
+
   return patterns
 
 # taken from http://stackoverflow.com/questions/5351766/use-fnmatch-filter-to-filter-files-by-more-than-one-possible-file-extension/25413436#25413436
@@ -39,18 +39,18 @@ def find_files(dir_path: str=None, patterns: [str]=None) -> [str]:
 def ignoreFunction(directory, files):
   ignorePatterns = readGitIgnorePatterns()
   ignorePatterns = list(ignorePatterns)
-      
+
   for additionalPattern in additionalIgnorePatterns:
     ignorePatterns.append(additionalPattern)
-    
+
   ignoredFiles = [file for file in find_files(directory, ignorePatterns)]
-    
+
   return ignoredFiles
-    
+
 ## script start
 with open('info.json') as infoFile:
   modInfo = json.load(infoFile)
-  
+
 if modInfo is not None:
   modName = modInfo['name']
   modVersion = modInfo['version']
@@ -58,11 +58,11 @@ if modInfo is not None:
   modFileName = modName + '_' + modVersion
   tempDir = os.path.join ('.', 'tmp')
   modDir = os.path.join(tempDir, modFileName)
-  
+
   shutil.copytree('.', modDir, ignore=ignoreFunction)
-  
+
   if os.path.isfile(modFileName + '.zip'):
     os.remove(modFileName + '.zip')
-    
+
   shutil.make_archive(modFileName, 'zip', tempDir)
   shutil.rmtree(tempDir)
