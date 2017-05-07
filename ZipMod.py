@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 import shutil
 import fnmatch
 import functools
@@ -50,7 +51,12 @@ def ignoreFunction(directory, files):
   return ignoredFiles
 
 ## script start
-with open('info.json') as infoFile:
+if len(sys.argv) == 2:
+  dir = sys.argv[1]
+else:
+  dir = '.'
+
+with open(os.path.join(dir, 'info.json')) as infoFile:
   modInfo = json.load(infoFile)
 
 if modInfo is not None:
@@ -61,7 +67,7 @@ if modInfo is not None:
   tempDir = os.path.join ('.', 'tmp')
   modDir = os.path.join(tempDir, modFileName)
 
-  shutil.copytree('.', modDir, ignore=ignoreFunction)
+  shutil.copytree(dir, modDir, ignore=ignoreFunction)
 
   if os.path.isfile(modFileName + '.zip'):
     os.remove(modFileName + '.zip')
