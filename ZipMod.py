@@ -12,9 +12,12 @@ import subprocess
 # define additional patterns for files here that are not in the .gitignore file and should be omitted from the zipped mod
 additionalIgnorePatterns = ['*.py', '.git', '.gitignore']
 
+# read all git ignore patterns that apply to a given git repo root directory
 def readAllGitIgnorePatterns(dir):
+  # the repo's local .gitignore file
   patterns = readGitIgnorePatterns(os.path.join(dir, '.gitignore'))
 
+  # the user's global excludesfile, most commonly ~/.gitignore
   try:
     gitExcludesFile = os.path.expanduser(
       subprocess.check_output([
@@ -31,9 +34,7 @@ def readAllGitIgnorePatterns(dir):
 
   return patterns
 
-
-
-# reads non-commented ignore patterns from the .gitignore file
+# reads non-commented ignore patterns from a single .gitignore file
 def readGitIgnorePatterns(gitIgnoreFilename):
   patterns = set()
 
@@ -62,6 +63,7 @@ def find_files(dir_path: str=None, patterns: [str]=None) -> [str]:
 
 # function to be passed to copytree, see https://docs.python.org/2/library/shutil.html#shutil.copytree
 def ignoreFunction(directory, files):
+  #TODO curry this function to include modDir, rather than using global variable
   ignorePatterns = readAllGitIgnorePatterns(modDir)
   ignorePatterns = list(ignorePatterns)
 
@@ -73,14 +75,15 @@ def ignoreFunction(directory, files):
   return ignoredFiles
 
 ## script start
+# optionally read target directory from first command line parameter
 if len(sys.argv) == 2:
   modDir = sys.argv[1]
 else:
   modDir = '.'
-  
+
 if os.path.isdir(modDir):
   modInfoJson = os.path.join(modDir, 'info.json')
-  
+
   if os.path.isfile(modInfoJson):
     with open(modInfoJson) as infoFile:
       modInfo = json.load(infoFile)
